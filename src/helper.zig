@@ -2,20 +2,28 @@ const std = @import("std");
 const http = std.http;
 
 pub const Route = struct {
-    method: http.Method,
-    /// Should be everything that comes after the domain name in
-    /// the URL. Including the leading slash.
-    pathname: []const u8,
-    handler: *const fn (
-        request: *http.Server.Request,
-    ) anyerror!void,
+    predicate: fn (request: *const http.Server.Request) bool,
+    handler: fn (request: *http.Server.Request) anyerror!void,
 
     pub fn from(module: anytype) Route {
         return Route{
-            .method = @field(module, "method"),
-            .pathname = @field(module, "pathname"),
+            .predicate = @field(module, "predicate"),
             .handler = @field(module, "handler"),
         };
+    }
+};
+
+pub const Predicate = struct {
+    pub fn exact(
+        comptime expected: []const u8,
+        comptime method: http.Method,
+    ) (fn (request: *const http.Server.Request) bool) {
+        return struct {
+            fn predicate(request: *const http.Server.Request) bool {
+                return std.mem.eql(u8, request.head.target, expected) and
+                    request.head.method == method;
+            }
+        }.predicate;
     }
 };
 

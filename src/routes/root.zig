@@ -1,9 +1,10 @@
 const http = @import("std").http;
 const helper = @import("../helper.zig");
 
-pub const method = http.Method.GET;
-
-pub const pathname = "/";
+pub const predicate = helper.Predicate.exact(
+    "/",
+    http.Method.GET,
+);
 
 pub fn handler(request: *http.Server.Request) anyerror!void {
     try request.respond(

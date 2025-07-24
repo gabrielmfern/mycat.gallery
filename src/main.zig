@@ -36,10 +36,8 @@ pub fn main() !void {
             http_request.head.target,
         });
 
-        for (routes) |route| {
-            if (http_request.head.method == route.method and
-                std.mem.eql(u8, http_request.head.target, route.pathname))
-            {
+        inline for (routes) |route| {
+            if (route.predicate(&http_request)) {
                 try route.handler(&http_request);
                 break;
             }
