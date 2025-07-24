@@ -1,4 +1,12 @@
 const std = @import("std");
+const http = std.http;
+const helper = @import("helper.zig");
+
+const routes = &[_]helper.Route{
+    helper.Route.from(@import("routes/root.zig")),
+};
+
+pub var allocator: std.mem.Allocator = undefined;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -7,7 +15,7 @@ pub fn main() !void {
             std.log.warn("Memory leak detected", .{});
         }
     }
-    const allocator = gpa.allocator();
+    allocator = gpa.allocator();
 
     const address = try std.net.Address.resolveIp("127.0.0.1", 3000);
 
@@ -21,21 +29,20 @@ pub fn main() !void {
 
         var head_buffer: [1024]u8 = undefined;
         var http_server = std.http.Server.init(connection, &head_buffer);
+
         var http_request = try http_server.receiveHead();
-
-        if (http_request.head.content_length) |content_length| {
-            const reader = try http_request.reader();
-            const request_body = try allocator.alloc(u8, content_length);
-            defer allocator.free(request_body);
-            _ = try reader.readAll(request_body);
-
-            std.debug.print("Received request with body: {s}\n", .{request_body});
-        }
-
-        try http_request.respond("This is some text for you to be happy with!", .{
-            .extra_headers = &.{
-                .{ .name = "Content-Type", .value = "text/plain" },
-            },
+        std.log.debug("{s} {s}", .{
+            @tagName(http_request.head.method),
+            http_request.head.target,
         });
+
+        for (routes) |route| {
+            if (http_request.head.method == route.method and
+                std.mem.eql(u8, http_request.head.target, route.pathname))
+            {
+                try route.handler(&http_request);
+                break;
+            }
+        }
     }
 }
