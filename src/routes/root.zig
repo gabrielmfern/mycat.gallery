@@ -1,7 +1,7 @@
 const http = @import("std").http;
-const helper = @import("../helper.zig");
+const glue = @import("../glue.zig");
 
-pub const predicate = helper.Predicate.exact(
+pub const predicate = glue.Predicates.exact(
     "/",
     http.Method.GET,
 );

@@ -1,9 +1,9 @@
 const std = @import("std");
 const http = std.http;
-const helper = @import("helper.zig");
+const glue = @import("glue.zig");
 
-const routes = &[_]helper.Route{
-    helper.Route.from(@import("routes/root.zig")),
+const routes = &[_]glue.Route{
+    glue.Route.from(@import("routes/root.zig")),
 };
 
 pub var allocator: std.mem.Allocator = undefined;

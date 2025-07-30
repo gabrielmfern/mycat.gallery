@@ -1,8 +1,10 @@
 const std = @import("std");
 const http = std.http;
 
+pub const Predicate = fn (request: *const http.Server.Request) bool;
+
 pub const Route = struct {
-    predicate: fn (request: *const http.Server.Request) bool,
+    predicate: Predicate,
     handler: fn (request: *http.Server.Request) anyerror!void,
 
     pub fn from(module: anytype) Route {
@@ -13,11 +15,11 @@ pub const Route = struct {
     }
 };
 
-pub const Predicate = struct {
+pub const Predicates = struct {
     pub fn exact(
         comptime expected: []const u8,
         comptime method: http.Method,
-    ) (fn (request: *const http.Server.Request) bool) {
+    ) Predicate {
         return struct {
             fn predicate(request: *const http.Server.Request) bool {
                 return std.mem.eql(u8, request.head.target, expected) and
