@@ -1,6 +1,6 @@
 const std = @import("std");
 const http = std.http;
-const glue = @import("../glue.zig");
+const glue = @import("glue");
 const layout = @import("../components/layout.zig").layout;
 
 const use_allocator = @import("../main.zig").use_allocator;

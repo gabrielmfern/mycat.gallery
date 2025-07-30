@@ -1,5 +1,5 @@
 const std = @import("std");
-const glue = @import("../glue.zig");
+const glue = @import("glue");
 
 pub fn layout(
     comptime title: []const u8,

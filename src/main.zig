@@ -1,6 +1,6 @@
 const std = @import("std");
 const http = std.http;
-const glue = @import("glue.zig");
+const glue = @import("glue");
 
 const routes = &[_]glue.Route{
     glue.Route.from(@import("routes/root.zig")),
@@ -50,5 +50,5 @@ pub fn main() !void {
 }
 
 test {
-    std.testing.refAllDecls(@import("glue.zig"));
+    std.testing.refAllDecls(@import("glue"));
 }
