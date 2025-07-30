@@ -6,7 +6,11 @@ const routes = &[_]glue.Route{
     glue.Route.from(@import("routes/root.zig")),
 };
 
-pub var allocator: std.mem.Allocator = undefined;
+var allocator: std.mem.Allocator = undefined;
+
+pub fn use_allocator() std.mem.Allocator {
+    return allocator;
+}
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -29,7 +33,7 @@ pub fn main() !void {
 
         var head_buffer: [1024]u8 = undefined;
         var http_server = std.http.Server.init(connection, &head_buffer);
-
+        
         var http_request = try http_server.receiveHead();
         std.log.debug("{s} {s}", .{
             @tagName(http_request.head.method),
