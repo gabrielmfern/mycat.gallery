@@ -44,3 +44,7 @@ pub fn main() !void {
         }
     }
 }
+
+test {
+    std.testing.refAllDecls(@import("glue.zig"));
+}
