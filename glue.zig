@@ -189,7 +189,7 @@ pub const MultiPartForm = struct {
             return error.NotMultiPartFormData;
         }
 
-        const boundary = extractBoundary(content_type) orelse return error.InvalidBoundary;
+        const boundary = extract_boundary(content_type) orelse return error.InvalidBoundary;
 
         var boundary_buf: [74]u8 = undefined;
         boundary_buf[0] = '-';
@@ -209,7 +209,7 @@ pub const MultiPartForm = struct {
             if (entry.len < 2 or entry[0] != '\r' or entry[1] != '\n') continue;
             const field_data = entry[2..];
 
-            if (try parseField(allocator, field_data)) |field| {
+            if (try parse_field(field_data)) |field| {
                 try fields.append(field);
             }
         }
@@ -233,7 +233,7 @@ pub const MultiPartField = struct {
     content: []const u8,
 };
 
-fn extractBoundary(content_type: []const u8) ?[]const u8 {
+fn extract_boundary(content_type: []const u8) ?[]const u8 {
     const boundary_prefix = "boundary=";
     const start = std.mem.indexOf(u8, content_type, boundary_prefix) orelse return null;
     var boundary = content_type[start + boundary_prefix.len ..];
@@ -252,7 +252,7 @@ fn extractBoundary(content_type: []const u8) ?[]const u8 {
     return if (boundary.len > 0 and boundary.len <= 70) boundary else null;
 }
 
-fn parseField(allocator: Allocator, field_data: []const u8) !?MultiPartField {
+fn parse_field(field_data: []const u8) !?MultiPartField {
     var pos: usize = 0;
     var name: ?[]const u8 = null;
     var filename: ?[]const u8 = null;
@@ -278,9 +278,9 @@ fn parseField(allocator: Allocator, field_data: []const u8) !?MultiPartField {
                 while (attr_it.next()) |attr| {
                     const clean_attr = std.mem.trim(u8, attr, " \t");
                     if (std.mem.startsWith(u8, clean_attr, "name=")) {
-                        name = parseQuotedValue(clean_attr["name=".len..]);
+                        name = parse_quoted_value(clean_attr["name=".len..]);
                     } else if (std.mem.startsWith(u8, clean_attr, "filename=")) {
-                        filename = parseQuotedValue(clean_attr["filename=".len..]);
+                        filename = parse_quoted_value(clean_attr["filename=".len..]);
                     }
                 }
             }
@@ -294,17 +294,14 @@ fn parseField(allocator: Allocator, field_data: []const u8) !?MultiPartField {
         content = content[0 .. content.len - 2];
     }
 
-    const content_copy = try allocator.dupe(u8, content);
-    const filename_copy = if (filename) |f| try allocator.dupe(u8, f) else null;
-
     return MultiPartField{
         .name = field_name,
-        .filename = filename_copy,
-        .content = content_copy,
+        .filename = filename,
+        .content = content,
     };
 }
 
-fn parseQuotedValue(value: []const u8) []const u8 {
+fn parse_quoted_value(value: []const u8) []const u8 {
     var result = std.mem.trim(u8, value, " \t");
     if (result.len >= 2 and result[0] == '"' and result[result.len - 1] == '"') {
         result = result[1 .. result.len - 1];
