@@ -30,7 +30,7 @@ pub fn main() !void {
     }
     allocator = gpa.allocator();
 
-    const address = try std.net.Address.resolveIp("127.0.0.1", 3000);
+    const address = try std.net.Address.resolveIp("192.168.7.7", 3000);
 
     var server = try address.listen(.{});
     defer server.deinit();
