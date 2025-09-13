@@ -1,3 +1,5 @@
+/* Tailwindy styles */
+
 :root {
   --color-gray-1: #202020;
   --color-gray-2: #222222;
@@ -5,22 +7,90 @@
   --color-green-1: #ACC8B4;
 }
 
+*, html, body {
+  box-sizing: border-box;
+}
+
 .m-0 {
   margin: 0;
 }
-.font-sans {
-  font-family:  ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+.h-11 {
+  height: 2.75rem;
 }
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.py-4 {
+  padding-block: 1rem;
+}
+
+.border-b-4 {
+  border-bottom: 1px solid;
+}
+
+.border-b-gray-2 {
+  border-bottom-color: var(--color-gray-2);
+}
+
+.font-sans {
+  font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+.text-sm {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.text-xs {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.\-mt-1 {
+  margin-top: -0.25rem;
+}
+
 .text-base {
   font-size: 16px;
   line-height: 1.5;
+}
+
+.p-14 {
+  padding: 3.5rem;
 }
 
 .flex {
   display: flex;
 }
 
-.flex-column {
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.align-middle {
+  vertical-align: middle;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.flex-col {
   flex-direction: column;
 }
 
@@ -30,6 +100,10 @@
 
 .ml-auto {
   margin-left: auto;
+}
+
+.w-fit {
+  width: fit-content;
 }
 
 .w-full {
@@ -60,22 +134,52 @@
   color: var(--color-green-1);
 }
 
+.text-white {
+  color: white;
+}
+
 .container {
   width: 100%;
-  @media (width >= 40rem) {
+
+  @media (width >=40rem) {
     max-width: 40rem;
   }
-  @media (width >= 48rem) {
+
+  @media (width >=48rem) {
     max-width: 48rem;
   }
-  @media (width >= 64rem) {
+
+  @media (width >=64rem) {
     max-width: 64rem;
   }
-  @media (width >= 80rem) {
+
+  @media (width >=80rem) {
     max-width: 80rem;
   }
-  @media (width >= 96rem) {
+
+  @media (width >=96rem) {
     max-width: 96rem;
   }
 }
+
+/* Custom styles */
+
+.send-picture-button {
+  appearance: none;
+  color: var(--color-green-1);
+}
+
+.picture-card {
+  overflow: hidden;
+  width: fit-content;
+  height: 12rem;
+  padding-inline: 1rem;
+
+  img {
+    object-fit: cover;
+    border-radius: 0.625rem;
+    height: 100%;
+  }
+}
+
 
