@@ -27,6 +27,18 @@ pub const Predicates = struct {
             }
         }.predicate;
     }
+
+    pub fn starts_with(
+        comptime prefix: []const u8,
+        comptime method: http.Method,
+    ) Predicate {
+        return struct {
+            fn predicate(request: *const http.Server.Request) bool {
+                return std.mem.startsWith(u8, request.head.target, prefix) and
+                    request.head.method == method;
+            }
+        }.predicate;
+    }
 };
 
 // Anything better to name this?
@@ -43,7 +55,7 @@ const StringBuilder = struct {
             .string = try allocator.alloc(u8, 0),
         };
     }
-    
+
     fn deinit(self: *Self) void {
         self.allocator.free(self.string);
     }

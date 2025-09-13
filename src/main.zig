@@ -4,6 +4,7 @@ const glue = @import("glue");
 
 const routes = &[_]glue.Route{
     glue.Route.from(@import("routes/root.zig")),
+    glue.Route.from(@import("routes/public.zig")),
 };
 
 var allocator: std.mem.Allocator = undefined;

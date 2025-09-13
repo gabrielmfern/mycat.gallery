@@ -1,0 +1,12 @@
+:root {
+  --color-gray-1: #202020;
+  --color-gray-2: #222222;
+  --color-gray-3: #676767;
+  --color-green-1: #ACC8B4;
+}
+
+body, html {
+  background: var(--color-gray-1);
+  color: var(--color-green-1);
+  font-family: Inter;
+}
