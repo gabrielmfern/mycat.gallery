@@ -176,6 +176,7 @@
 .picture-card {
   overflow: hidden;
   width: fit-content;
+  margin-inline: auto;
   height: 12rem;
   padding: 1rem;
 
