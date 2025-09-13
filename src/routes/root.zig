@@ -22,7 +22,12 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
     );
 
     var picture_elements = try allocator.alloc([]const u8, page.pictures.len);
-    defer allocator.free(picture_elements);
+    defer {
+        for (picture_elements) |element| {
+            allocator.free(element);
+        }
+        allocator.free(picture_elements);
+    }
     for (page.pictures, 0..) |picture, i| {
         picture_elements[i] = try glue.html(.{
             "<div class=\"picture-card\">",
@@ -46,7 +51,7 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
             "          id=\"picture\"",
             "          name=\"picture\"",
             "          type=\"file\"",
-            "          accept=\"image/*\"",
+            "          accept=\"image/heic, image/*\"",
             "          capture=\"environment\"",
             "          class=\"hidden\"",
             "          onchange=\"fetch('/upload', { method: 'post', body: new FormData(submitPictureForm) }).then(() => location.reload())\"",
