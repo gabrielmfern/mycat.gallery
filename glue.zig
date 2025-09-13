@@ -92,6 +92,13 @@ fn write_node(node: anytype, builder: *StringBuilder) !void {
             return;
         }
 
+        if (node_type_info.pointer.size == .slice) {
+            for (node) |child| {
+                try write_node(child, builder);
+            }
+            return;
+        }
+
         try write_node(node.*, builder);
         return;
     }
