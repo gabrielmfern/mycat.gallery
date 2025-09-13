@@ -13,7 +13,10 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
     const allocator = use_allocator();
 
     const path = request.head.target;
-    const picture = std.fs.cwd().openFile(path, .{}) catch {
+    const picture = std.fs.cwd().openFile(
+        std.mem.trim(u8, path, "/"),
+        .{},
+    ) catch {
         try request.respond(
             "Not Found",
             .{
