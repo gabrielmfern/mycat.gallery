@@ -90,9 +90,12 @@ pub fn get_page(self: *Self, page: usize) !PicturePage {
     };
 }
 
-pub fn add(self: *Self, bytes: []const u8, taken_at: i32, file_extension: []const u8) !void {
+pub fn post(self: *Self, bytes: []const u8, taken_at: i32, file_extension: []const u8) !void {
+    std.fs.cwd().makeDir("pictures") catch |err|
+        if (err != error.PathAlreadyExists) return err;
+
     const id = uuid.v7.new();
-    const uri = try std.fmt.allocPrint(self.allocator, "pictures/{d}.{s}", .{id, file_extension});
+    const uri = try std.fmt.allocPrint(self.allocator, "pictures/{d}.{s}", .{ id, file_extension });
     defer self.allocator.free(uri);
 
     const image = try std.fs.cwd().createFile(uri, .{ .exclusive = true });
@@ -104,7 +107,7 @@ pub fn add(self: *Self, bytes: []const u8, taken_at: i32, file_extension: []cons
         \\VALUES (?, ?, ?);
     );
     defer statement.deinit();
-    
+
     try statement.exec(.{}, .{
         .favorite = false,
         .uri = uri,

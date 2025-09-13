@@ -15,23 +15,27 @@ pub const predicate = glue.Predicates.exact(
 pub fn handler(request: *http.Server.Request) anyerror!void {
     const allocator = use_allocator();
     const database = use_database();
-
     const multi_part_form_data = try glue.MultiPartForm.parse(allocator, request);
     defer multi_part_form_data.deinit();
 
     for (multi_part_form_data.fields.items) |field| {
         if (std.mem.eql(u8, field.name, "picture")) {
-            var splitIterator = std.mem.splitBackwardsSequence(u8, field.filename, ".");
+            const filename = field.filename orelse return error.NeedToHaveAExtension;
+            var splitIterator = std.mem.splitBackwardsSequence(
+                u8,
+                filename,
+                ".",
+            );
             const extension = splitIterator.first();
             std.log.debug(
                 "Received picture: {s} ({d} bytes, extension: {s})",
                 .{
-                    field.filename orelse "unknown",
+                    filename,
                     field.content.len,
                     extension,
                 },
             );
-            try database.add(
+            try database.post(
                 field.content,
                 0, // TODO: get the time in which the picture was taken from the image's metadata and write it here
                 extension,
