@@ -17,8 +17,35 @@ body {
 }
 
 .mx-auto {
+  margin-inline: auto;
+}
+
+.ml-auto {
   margin-left: auto;
-  margin-right: auto;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.bg-gray-1 {
+  background: var(--color-gray-1);
+}
+
+.bg-gray-2 {
+  background: var(--color-gray-2);
+}
+
+.bg-gray-3 {
+  background: var(--color-gray-3);
+}
+
+.bg-green-1 {
+  background: var(--color-green-1);
+}
+
+.text-green-1 {
+  color: var(--color-green-1);
 }
 
 .container {
