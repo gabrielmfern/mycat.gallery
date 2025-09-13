@@ -1,16 +1,23 @@
 const std = @import("std");
 const http = std.http;
 const glue = @import("glue");
+const Database = @import("database.zig");
 
 const routes = &[_]glue.Route{
     glue.Route.from(@import("routes/root.zig")),
     glue.Route.from(@import("routes/public.zig")),
+    glue.Route.from(@import("routes/upload.zig")),
 };
 
 var allocator: std.mem.Allocator = undefined;
+var database: Database = undefined;
 
 pub fn use_allocator() std.mem.Allocator {
     return allocator;
+}
+
+pub fn use_database() *Database {
+    return &database;
 }
 
 pub fn main() !void {
@@ -27,6 +34,10 @@ pub fn main() !void {
     var server = try address.listen(.{});
     defer server.deinit();
     std.log.info("Server listening on http://localhost:3000", .{});
+
+    database = try Database.init(allocator);
+    defer database.deinit();
+    std.log.debug("Connection to database established", .{});
 
     while (true) {
         const connection = try server.accept();

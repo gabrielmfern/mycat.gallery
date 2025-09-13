@@ -1,4 +1,5 @@
 const std = @import("std");
+const Allocator = std.mem.Allocator;
 const http = std.http;
 
 pub const Predicate = fn (request: *const http.Server.Request) bool;
@@ -170,4 +171,143 @@ pub fn readBody(
     } else {
         return null;
     }
+}
+
+pub const MultiPartForm = struct {
+    allocator: Allocator,
+    fields: std.ArrayList(MultiPartField),
+    body: []const u8,
+
+    pub fn parse(allocator: Allocator, request: *std.http.Server.Request) !@This() {
+        var fields = std.ArrayList(MultiPartField).init(allocator);
+        errdefer fields.deinit();
+        const body = try readBody(request, allocator) orelse return error.NoBody;
+        errdefer allocator.free(body);
+
+        const content_type = request.head.content_type orelse return error.NoContentType;
+        if (!std.ascii.startsWithIgnoreCase(content_type, "multipart/form-data")) {
+            return error.NotMultiPartFormData;
+        }
+
+        const boundary = extractBoundary(content_type) orelse return error.InvalidBoundary;
+
+        var boundary_buf: [74]u8 = undefined;
+        boundary_buf[0] = '-';
+        boundary_buf[1] = '-';
+        @memcpy(boundary_buf[2 .. 2 + boundary.len], boundary);
+        const full_boundary = boundary_buf[0 .. 2 + boundary.len];
+
+        var entry_it = std.mem.splitSequence(u8, body, full_boundary);
+
+        _ = entry_it.next();
+
+        while (entry_it.next()) |entry| {
+            if (entry.len >= 4 and std.mem.startsWith(u8, entry, "--\r\n")) {
+                break;
+            }
+
+            if (entry.len < 2 or entry[0] != '\r' or entry[1] != '\n') continue;
+            const field_data = entry[2..];
+
+            if (try parseField(allocator, field_data)) |field| {
+                try fields.append(field);
+            }
+        }
+
+        return .{
+            .allocator = allocator,
+            .fields = fields,
+            .body = body,
+        };
+    }
+
+    pub fn deinit(self: @This()) void {
+        self.fields.deinit();
+        self.allocator.free(self.body);
+    }
+};
+
+pub const MultiPartField = struct {
+    name: []const u8,
+    filename: ?[]const u8,
+    content: []const u8,
+};
+
+fn extractBoundary(content_type: []const u8) ?[]const u8 {
+    const boundary_prefix = "boundary=";
+    const start = std.mem.indexOf(u8, content_type, boundary_prefix) orelse return null;
+    var boundary = content_type[start + boundary_prefix.len ..];
+
+    if (boundary.len > 0 and boundary[0] == '"') {
+        boundary = boundary[1..];
+        if (std.mem.indexOf(u8, boundary, "\"")) |end| {
+            boundary = boundary[0..end];
+        }
+    } else {
+        if (std.mem.indexOf(u8, boundary, ";")) |end| {
+            boundary = boundary[0..end];
+        }
+    }
+
+    return if (boundary.len > 0 and boundary.len <= 70) boundary else null;
+}
+
+fn parseField(allocator: Allocator, field_data: []const u8) !?MultiPartField {
+    var pos: usize = 0;
+    var name: ?[]const u8 = null;
+    var filename: ?[]const u8 = null;
+
+    while (pos < field_data.len) {
+        const line_end = std.mem.indexOfScalarPos(u8, field_data, pos, '\n') orelse break;
+        const line = field_data[pos..line_end];
+        pos = line_end + 1;
+
+        const clean_line = if (line.len > 0 and line[line.len - 1] == '\r')
+            line[0 .. line.len - 1]
+        else
+            line;
+
+        if (clean_line.len == 0) break;
+
+        if (std.ascii.startsWithIgnoreCase(clean_line, "content-disposition:")) {
+            const value = std.mem.trim(u8, clean_line["content-disposition:".len..], " \t");
+            if (std.ascii.startsWithIgnoreCase(value, "form-data;")) {
+                const attrs = value["form-data;".len..];
+
+                var attr_it = std.mem.splitSequence(u8, attrs, ";");
+                while (attr_it.next()) |attr| {
+                    const clean_attr = std.mem.trim(u8, attr, " \t");
+                    if (std.mem.startsWith(u8, clean_attr, "name=")) {
+                        name = parseQuotedValue(clean_attr["name=".len..]);
+                    } else if (std.mem.startsWith(u8, clean_attr, "filename=")) {
+                        filename = parseQuotedValue(clean_attr["filename=".len..]);
+                    }
+                }
+            }
+        }
+    }
+
+    const field_name = name orelse return null;
+
+    var content = field_data[pos..];
+    if (content.len >= 2 and content[content.len - 2] == '\r' and content[content.len - 1] == '\n') {
+        content = content[0 .. content.len - 2];
+    }
+
+    const content_copy = try allocator.dupe(u8, content);
+    const filename_copy = if (filename) |f| try allocator.dupe(u8, f) else null;
+
+    return MultiPartField{
+        .name = field_name,
+        .filename = filename_copy,
+        .content = content_copy,
+    };
+}
+
+fn parseQuotedValue(value: []const u8) []const u8 {
+    var result = std.mem.trim(u8, value, " \t");
+    if (result.len >= 2 and result[0] == '"' and result[result.len - 1] == '"') {
+        result = result[1 .. result.len - 1];
+    }
+    return result;
 }

@@ -16,6 +16,14 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     exe_mod.addImport("glue", glue);
+    exe_mod.addImport(
+        "sqlite",
+        b.dependency("sqlite", .{}).module("sqlite"),
+    );
+    exe_mod.addImport(
+        "uuid",
+        b.dependency("uuid", .{}).module("uuid"),
+    );
 
     const exe = b.addExecutable(.{
         .name = "mypet_gallery",
