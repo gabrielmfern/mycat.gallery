@@ -14,7 +14,9 @@ pub fn layout(
     []const u8,
     []const u8,
     []const u8,
+    []const u8,
     @TypeOf(children),
+    []const u8,
     []const u8,
     []const u8,
 }) {
@@ -28,7 +30,9 @@ pub fn layout(
         "  <link rel=\"stylesheet\" href=\"/public/globals.css\">",
         "</head>",
         "<body>",
+        "  <div class=\"container\">",
         children,
+        "  </div>",
         "</body>",
         "</html>",
     };
