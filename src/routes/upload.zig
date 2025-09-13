@@ -21,7 +21,7 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
 
     for (multi_part_form_data.fields.items) |field| {
         if (std.mem.eql(u8, field.name, "picture")) {
-            var splitIterator = std.mem.splitBackwardsSequence(u8, field.name, ".");
+            var splitIterator = std.mem.splitBackwardsSequence(u8, field.filename, ".");
             const extension = splitIterator.first();
             std.log.debug(
                 "Received picture: {s} ({d} bytes, extension: {s})",
