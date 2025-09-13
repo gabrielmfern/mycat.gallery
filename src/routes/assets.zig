@@ -5,6 +5,7 @@ const glue = @import("glue");
 const use_allocator = @import("../main.zig").use_allocator;
 
 const globals_css = @embedFile("./assets/globals.css");
+const logo = @embedFile("./assets/logo.svg");
 
 pub const predicate = glue.Predicates.starts_with(
     "/assets",
@@ -19,6 +20,16 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
                 .status = .ok,
                 .extra_headers = &.{
                     .{ .name = "Content-Type", .value = "text/css; charset=UTF-8" },
+                },
+            },
+        );
+    } else if (std.mem.eql(u8, request.head.target, "/assets/logo.svg")) {
+        try request.respond(
+            logo,
+            .{
+                .status = .ok,
+                .extra_headers = &.{
+                    .{ .name = "Content-Type", .value = "image/svg+xml; charset=UTF-8" },
                 },
             },
         );
