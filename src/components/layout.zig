@@ -22,14 +22,14 @@ pub fn layout(
 }) {
     return .{
         "<!DOCTYPE html>",
-        "<html lang=\"en\">",
+        "<html lang=\"pt-BR\">",
         "<head>",
         "  <meta charset=\"UTF-8\">",
         "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">",
         "  <title>" ++ title ++ "</title>",
-        "  <link rel=\"stylesheet\" href=\"/public/globals.css\">",
+        "  <link rel=\"stylesheet\" href=\"/assets/globals.css\">",
         "</head>",
-        "<body>",
+        "<body class=\"m-0 text-base bg-gray-1 text-green-1 font-sans\">",
         "  <div class=\"container mx-auto\">",
         children,
         "  </div>",

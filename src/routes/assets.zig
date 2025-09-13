@@ -4,15 +4,15 @@ const glue = @import("glue");
 
 const use_allocator = @import("../main.zig").use_allocator;
 
-const globals_css = @embedFile("./public/globals.css");
+const globals_css = @embedFile("./assets/globals.css");
 
 pub const predicate = glue.Predicates.starts_with(
-    "/public",
+    "/assets",
     http.Method.GET,
 );
 
 pub fn handler(request: *http.Server.Request) anyerror!void {
-    if (std.mem.eql(u8, request.head.target, "/public/globals.css")) {
+    if (std.mem.eql(u8, request.head.target, "/assets/globals.css")) {
         try request.respond(
             globals_css,
             .{

@@ -5,7 +5,8 @@ const Database = @import("database.zig");
 
 const routes = &[_]glue.Route{
     glue.Route.from(@import("routes/root.zig")),
-    glue.Route.from(@import("routes/public.zig")),
+    glue.Route.from(@import("routes/assets.zig")),
+    glue.Route.from(@import("routes/pictures.zig")),
     glue.Route.from(@import("routes/upload.zig")),
 };
 
