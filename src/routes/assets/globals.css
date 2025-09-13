@@ -62,6 +62,10 @@
   padding: 3.5rem;
 }
 
+.p-10 {
+  padding: 2.5rem;
+}
+
 .flex {
   display: flex;
 }
@@ -173,7 +177,7 @@
   overflow: hidden;
   width: fit-content;
   height: 12rem;
-  padding-inline: 1rem;
+  padding: 1rem;
 
   img {
     object-fit: cover;
