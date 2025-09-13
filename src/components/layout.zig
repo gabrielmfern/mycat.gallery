@@ -30,7 +30,7 @@ pub fn layout(
         "  <link rel=\"stylesheet\" href=\"/public/globals.css\">",
         "</head>",
         "<body>",
-        "  <div class=\"container\">",
+        "  <div class=\"container mx-auto\">",
         children,
         "  </div>",
         "</body>",
