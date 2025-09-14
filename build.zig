@@ -4,18 +4,19 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const glue = b.createModule(.{
-        .root_source_file = b.path("glue.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
-    exe_mod.addImport("glue", glue);
+    exe_mod.addImport(
+        "glue",
+        b.createModule(.{
+            .root_source_file = b.path("glue.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    );
     exe_mod.addImport(
         "sqlite",
         b.dependency("sqlite", .{}).module("sqlite"),
