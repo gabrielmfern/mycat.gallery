@@ -1,7 +1,7 @@
 .{
     .name = .mycat_gallery,
     .version = "0.0.0",
-    .fingerprint = 0xcdaa0ef74c96572b, // Changing this has security and trust implications.
+    .fingerprint = 0xf3550c4752db0134, // Changing this has security and trust implications.
     .minimum_zig_version = "0.14.1",
     .dependencies = .{
         .sqlite = .{
