@@ -21,6 +21,25 @@ pub fn use_database() *Database {
     return &database;
 }
 
+fn handle_connection(connection: std.net.Server.Connection) anyerror!void {
+    defer connection.stream.close();
+    var head_buffer: [1024]u8 = undefined;
+    var http_server = std.http.Server.init(connection, &head_buffer);
+
+    var http_request = try http_server.receiveHead();
+    std.log.debug("{s} {s}", .{
+        @tagName(http_request.head.method),
+        http_request.head.target,
+    });
+
+    inline for (routes) |route| {
+        if (route.predicate(&http_request)) {
+            try route.handler(&http_request);
+            break;
+        }
+    }
+}
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer {
@@ -42,26 +61,12 @@ pub fn main() !void {
 
     while (true) {
         const connection = try server.accept();
-        defer connection.stream.close();
-
-        var head_buffer: [1024]u8 = undefined;
-        var http_server = std.http.Server.init(connection, &head_buffer);
-        
-        var http_request = try http_server.receiveHead();
-        std.log.debug("{s} {s}", .{
-            @tagName(http_request.head.method),
-            http_request.head.target,
-        });
-
-        inline for (routes) |route| {
-            if (route.predicate(&http_request)) {
-                try route.handler(&http_request);
-                break;
-            }
-        }
+        const thread = try std.Thread.spawn(.{
+            .allocator = allocator,
+        }, handle_connection, .{connection});
+        thread.detach();
     }
 }
-
 test {
     std.testing.refAllDecls(@import("glue"));
 }
