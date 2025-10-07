@@ -51,7 +51,9 @@ pub fn main() !void {
 
     const address = try std.net.Address.resolveIp("127.0.0.1", 3000);
 
-    var server = try address.listen(.{});
+    var server = try address.listen(.{
+        .reuse_address = true,
+    });
     defer server.deinit();
     std.log.info("Server listening on http://localhost:3000", .{});
 
