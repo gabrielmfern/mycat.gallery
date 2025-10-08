@@ -58,7 +58,7 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
             "      />",
             "   </form>",
             "</div>",
-            "<div class=\"w-full bg-gray-2 flex flex-wrap p-10 justify-center\">",
+            "<div class=\"w-full bg-gray-2 flex flex-wrap p-10\">",
             picture_elements,
             "</div>",
         }),

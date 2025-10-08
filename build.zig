@@ -1,27 +1,8 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) !void {
+pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-
-    const routes = try std.fs.cwd().openDir("routes", .{
-        .iterate = true,
-    });
-    var routes_iterator = routes.iterate();
-    while (try routes_iterator.next()) |entry| {
-        if (entry.kind != .file) continue;
-
-        const route_mod = b.addLibrary(.{
-            .name = std.fs.path.basename(entry.name),
-            .root_module = b.createModule(.{
-                .root_source_file = b.path(b.pathResolve(&.{ "./routes", entry.name })),
-                .target = target,
-                .optimize = optimize,
-            }),
-            .linkage = .dynamic,
-        });
-        b.installArtifact(route_mod);
-    }
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
