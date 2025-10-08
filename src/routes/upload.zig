@@ -15,12 +15,35 @@ pub const predicate = glue.Predicates.exact(
 pub fn handler(request: *http.Server.Request) anyerror!void {
     const allocator = use_allocator();
     const database = use_database();
-    const multi_part_form_data = try glue.MultiPartForm.parse(allocator, request);
+    const multi_part_form_data = glue.MultiPartForm.parse(allocator, request) catch |err| {
+        std.log.err("Failed to parse multipart form data: {any}", .{err});
+        try request.respond(
+            "Failed to parse multipart form data",
+            .{
+                .status = .badRequest,
+                .extra_headers = &.{
+                    .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
+                },
+            },
+        );
+        return;
+    };
     defer multi_part_form_data.deinit();
 
     for (multi_part_form_data.fields.items) |field| {
         if (std.mem.eql(u8, field.name, "picture")) {
-            const filename = field.filename orelse return error.NeedToHaveAExtension;
+            const filename = field.filename orelse {
+                try request.respond(
+                    "No filename provided for the picture to upload",
+                    .{
+                        .status = .badRequest,
+                        .extra_headers = &.{
+                            .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
+                        },
+                    },
+                );
+                return;
+            };
             var splitIterator = std.mem.splitBackwardsSequence(
                 u8,
                 filename,
