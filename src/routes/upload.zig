@@ -20,7 +20,7 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
         try request.respond(
             "Failed to parse multipart form data",
             .{
-                .status = .badRequest,
+                .status = .bad_request,
                 .extra_headers = &.{
                     .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
                 },
@@ -36,7 +36,7 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
                 try request.respond(
                     "No filename provided for the picture to upload",
                     .{
-                        .status = .badRequest,
+                        .status = .bad_request,
                         .extra_headers = &.{
                             .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
                         },
