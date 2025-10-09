@@ -2,43 +2,22 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const http = std.http;
 
-pub const Predicate = fn (request: *const http.Server.Request) bool;
+pub fn RoutesFrom() void {}
 
 pub const Route = struct {
-    predicate: Predicate,
     handler: fn (request: *http.Server.Request) anyerror!void,
+    predicate: fn (request: *http.Server.Request) bool,
 
-    pub fn from(module: anytype) Route {
+    pub fn from(module: anytype, path: []const u8) Route {
         return Route{
-            .predicate = @field(module, "predicate"),
+            .predicate = (struct {
+                fn predicate(request: http.Server.Request) bool {
+                    return std.mem.eql(u8, request.head.target, path) and
+                        request.head.method == .GET;
+                }
+            }).predicate,
             .handler = @field(module, "handler"),
         };
-    }
-};
-
-pub const Predicates = struct {
-    pub fn exact(
-        comptime expected: []const u8,
-        comptime method: http.Method,
-    ) Predicate {
-        return struct {
-            fn predicate(request: *const http.Server.Request) bool {
-                return std.mem.eql(u8, request.head.target, expected) and
-                    request.head.method == method;
-            }
-        }.predicate;
-    }
-
-    pub fn starts_with(
-        comptime prefix: []const u8,
-        comptime method: http.Method,
-    ) Predicate {
-        return struct {
-            fn predicate(request: *const http.Server.Request) bool {
-                return std.mem.startsWith(u8, request.head.target, prefix) and
-                    request.head.method == method;
-            }
-        }.predicate;
     }
 };
 
