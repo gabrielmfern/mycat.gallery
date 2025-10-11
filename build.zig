@@ -1,33 +1,52 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) !void {
-    const target = b.standardTargetOptions(.{});
-    const optimize = b.standardOptimizeOption(.{});
-    
-    const Route = struct {
-        module: ?*b.Module,
-        path: []const u8,
-    };
-    
-    const route_modules = std.ArrayList(Route).init(b.allocator);
-
+fn import_routes_into(
+    b: *std.Build,
+    module: *std.Build.Module,
+    root_path: []const u8,
+) void {
     const app_directory = try std.fs.cwd().openDir("./src/app", .{
         .iterate = true,
     });
     var route_files_iterator = app_directory.iterate();
 
-    var path: []const u8 = "";
     while (try route_files_iterator.next()) |entry| {
+        if (entry.kind == .directory) {
+            import_routes_into(
+                b,
+                module,
+                b.pathJoin(&.{ root_path, entry.name }),
+            );
+        }
         if (entry.kind == .file) {
-            if (std.mem.endsWith(u8, entry.name, "page.zig")) {
-                try route_modules.append(.{
-                    .path = try b.allocator.dupe(u8, path),
-                    .page = 
-                    .route = null,
-                });
+            if (std.mem.endsWith(u8, entry.name, "route.zig")) {
+                module.addImport(entry.name, b.createModule(.{
+                    .root_source_file = b.pathJoin(&.{
+                        root_path,
+                        entry.name,
+                    }),
+                    .target = target,
+                    .optimize = optimize,
+                }));
             }
         }
     }
+}
+
+pub fn build(b: *std.Build) !void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const Route = struct {
+        module: ?*b.Module,
+        path: []const u8,
+    };
+
+    const routes_module = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+    });
+    import_routes_into(b, routes_module, "./src/app");
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
