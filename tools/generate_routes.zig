@@ -27,7 +27,13 @@ fn read_paths_from(
             const import = try std.mem.concat(
                 allocator,
                 u8,
-                &.{ "@import(\"", path, "\")" },
+                &.{
+                    "   glue.Route.from(@import(\"",
+                    path,
+                    "\"), \"",
+                    path,
+                    "\")",
+                },
             );
             try imports.append(import);
         }
@@ -52,13 +58,13 @@ pub fn main() !void {
     }
     try read_paths_from("./src/app", &imports, allocator);
 
-    const paths = try std.mem.join(allocator, ",", imports.items);
+    const paths = try std.mem.join(allocator, ",\n", imports.items);
     defer allocator.free(paths);
 
     const routes_file = try std.mem.concat(
         allocator,
         u8,
-        &.{ "pub const routes = &.{", paths, "};" },
+        &.{ "const glue = @import(\"glue\");\npub const routes = &.{\n", paths, "\n};" },
     );
     defer allocator.free(routes_file);
     const stdout = std.io.getStdOut();

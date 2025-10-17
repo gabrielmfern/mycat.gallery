@@ -2,20 +2,29 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const http = std.http;
 
-pub fn RoutesFrom() void {}
+pub const Predicate = fn (request: *http.Server.Request) bool;
+
+pub fn predicate_from(
+    path: []const u8,
+) Predicate {
+    return (struct {
+        fn predicate(request: *http.Server.Request) bool {
+            return std.mem.startsWith(
+                u8,
+                request.head.target,
+                path,
+            );
+        }
+    }).predicate;
+}
 
 pub const Route = struct {
     handler: fn (request: *http.Server.Request) anyerror!void,
-    predicate: fn (request: *http.Server.Request) bool,
+    predicate: Predicate,
 
     pub fn from(module: anytype, path: []const u8) Route {
         return Route{
-            .predicate = (struct {
-                fn predicate(request: http.Server.Request) bool {
-                    return std.mem.eql(u8, request.head.target, path) and
-                        request.head.method == .GET;
-                }
-            }).predicate,
+            .predicate = predicate_from(path),
             .handler = @field(module, "handler"),
         };
     }
