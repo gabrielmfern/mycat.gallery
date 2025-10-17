@@ -3,12 +3,7 @@ const http = std.http;
 const glue = @import("glue");
 const Database = @import("database.zig");
 
-const routes = &[_]glue.Route{
-    glue.Route.from(@import("routes/root.zig")),
-    glue.Route.from(@import("routes/assets.zig")),
-    glue.Route.from(@import("routes/pictures.zig")),
-    glue.Route.from(@import("routes/upload.zig")),
-};
+const routes = @import("routes").routes;
 
 var allocator: std.mem.Allocator = undefined;
 var database: Database = undefined;

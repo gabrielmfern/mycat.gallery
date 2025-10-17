@@ -67,6 +67,23 @@ pub fn main() !void {
         &.{ "const glue = @import(\"glue\");\npub const routes = &.{\n", paths, "\n};" },
     );
     defer allocator.free(routes_file);
-    const stdout = std.io.getStdOut();
-    _ = try stdout.write(routes_file);
+
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+
+    if (args.len != 2) {
+        std.log.err("wrong number of arguments", .{});
+        return std.process.exit(1);
+    }
+
+    const output_file_path = args[1];
+
+    var output_file = std.fs.cwd().createFile(output_file_path, .{}) catch |err| {
+        std.log.err("unable to open '{s}': {s}", .{ output_file_path, @errorName(err) });
+        return std.process.exit(1);
+    };
+    defer output_file.close();
+
+    try output_file.writeAll(routes_file);
+    return std.process.cleanExit();
 }
