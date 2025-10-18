@@ -1,36 +1,8 @@
 const std = @import("std");
 const glue = @import("glue");
 
-fn read_paths_from(
-    directory: std.fs.Dir,
-    base_path: []const u8,
-    imports: *std.ArrayList([]const u8),
-    allocator: std.mem.Allocator,
-) !void {
-    var iterator = directory.iterate();
-    while (try iterator.next()) |entry| {
-        const path = try std.fs.path.join(
-            allocator,
-            &.{ base_path, entry.name },
-        );
-
-        defer allocator.free(path);
-        if (entry.kind == .directory) {
-            try read_paths_from(
-                try directory.openDir(entry.name, .{ .iterate = true }),
-                path,
-                imports,
-                allocator,
-            );
-        } else if (entry.kind == .file and std.mem.endsWith(u8, entry.name, "route.zig")) {
-            const import = try std.mem.concat(
-                allocator,
-                u8,
-                &.{ "glue.Route.from(@import(\"", path, "\"), \"", path, "\")" },
-            );
-            try imports.append(import);
-        }
-    }
+fn alphabetic_sort(_: void, left: []const u8, right: []const u8) bool {
+    return !std.mem.lessThan(u8, left, right);
 }
 
 pub fn main() !void {
@@ -39,19 +11,35 @@ pub fn main() !void {
     const allocator = arena.allocator();
 
     var imports = std.ArrayList([]const u8).init(allocator);
-    try read_paths_from(
-        try std.fs.cwd().openDir("./src/app", .{ .iterate = true }),
-        "./app",
-        &imports,
-        allocator,
-    );
+
+    const app_directory = try std.fs.cwd().openDir("./src/app", .{ .iterate = true });
+    var app_walker = try app_directory.walk(allocator);
+    defer app_walker.deinit();
+    while (try app_walker.next()) |entry| {
+        if (entry.kind == .file and std.mem.endsWith(u8, entry.basename, "route.zig")) {
+            const import = try std.mem.concat(
+                allocator,
+                u8,
+                &.{ "glue.Route.from(@import(\"./app/", entry.path, "\"), \"/", entry.path, "\")" },
+            );
+            try imports.append(import);
+        }
+    }
+
+    std.mem.sort([]const u8, imports.items, void{}, alphabetic_sort);
 
     const paths = try std.mem.join(allocator, ", ", imports.items);
 
     const routes_file = try std.mem.concat(
         allocator,
         u8,
-        &.{ "const glue = @import(\"glue\");\npub const routes: []const glue.Route = &.{ ", paths, " };\n" },
+        &.{
+            "// This file is auto-generated. Do not edit.\n",
+            "const glue = @import(\"glue\");\n",
+            "pub const routes: []const glue.Route = &.{ ",
+            paths,
+            " };\n",
+        },
     );
 
     const args = try std.process.argsAlloc(allocator);

@@ -68,7 +68,7 @@ pub fn predicate_from(
 ) Predicate {
     return (struct {
         fn predicate(request: *http.Server.Request) bool {
-            var route_pattern: []const u8 = path["./app".len .. path.len - "route.zig".len][0..];
+            var route_pattern: []const u8 = path[0..path.len - "route.zig".len][0..];
             if (!std.mem.eql(u8, route_pattern, "/")) {
                 route_pattern = std.mem.trimRight(u8, route_pattern, "/");
             }
