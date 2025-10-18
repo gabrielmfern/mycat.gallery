@@ -26,7 +26,7 @@ fn read_paths_from(
             const import = try std.mem.concat(
                 allocator,
                 u8,
-                &.{ "   glue.Route.from(@import(\"", path, "\"), \"", path, "\")" },
+                &.{ "   glue.Route.from(@import(\"", path, "\"), \"", path, "\")," },
             );
             try imports.append(import);
         }
@@ -34,21 +34,11 @@ fn read_paths_from(
 }
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer {
-        if (gpa.deinit() == .leak) {
-            std.log.warn("Leaked memory", .{});
-        }
-    }
-    const allocator = gpa.allocator();
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
 
     var imports = std.ArrayList([]const u8).init(allocator);
-    defer imports.deinit();
-    defer {
-        for (imports.items) |path| {
-            allocator.free(path);
-        }
-    }
     try read_paths_from(
         try std.fs.cwd().openDir("./src/app", .{ .iterate = true }),
         "./app",
@@ -56,18 +46,15 @@ pub fn main() !void {
         allocator,
     );
 
-    const paths = try std.mem.join(allocator, ",\n", imports.items);
-    defer allocator.free(paths);
+    const paths = try std.mem.join(allocator, "\n", imports.items);
 
     const routes_file = try std.mem.concat(
         allocator,
         u8,
         &.{ "const glue = @import(\"glue\");\npub const routes: []const glue.Route = &.{\n", paths, "\n};" },
     );
-    defer allocator.free(routes_file);
 
     const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
 
     if (args.len != 2) {
         std.log.err("wrong number of arguments", .{});
