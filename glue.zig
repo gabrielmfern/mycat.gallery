@@ -42,6 +42,12 @@ fn matchesPattern(target: []const u8, pattern: []const u8) bool {
 }
 
 test "matchesPattern" {
+    try std.testing.expect(matchesPattern("/", "/"));
+    try std.testing.expect(!matchesPattern("/some-route", "/"));
+    try std.testing.expect(matchesPattern("/my-route", "/my-route"));
+    try std.testing.expect(!matchesPattern("/some-route", "/my-route"));
+    try std.testing.expect(!matchesPattern("/my-route/something-else", "/my-route"));
+
     try std.testing.expect(matchesPattern("/pictures/123", "/pictures/[id]"));
     try std.testing.expect(matchesPattern("/pictures/abc", "/pictures/[id]"));
     try std.testing.expect(!matchesPattern("/pictures", "/pictures/[id]"));
@@ -50,6 +56,7 @@ test "matchesPattern" {
     try std.testing.expect(matchesPattern("/assets/style.css", "/assets/[...name]"));
     try std.testing.expect(matchesPattern("/assets/js/app.js", "/assets/[...name]"));
     try std.testing.expect(matchesPattern("/assets/images/logo.png", "/assets/[...name]"));
+    try std.testing.expect(!matchesPattern("/asset/images/logo.png", "/assets/[...name]"));
 
     try std.testing.expect(matchesPattern("/api/users/123/posts", "/api/users/[id]/posts"));
     try std.testing.expect(!matchesPattern("/api/users/posts", "/api/users/[id]/posts"));
