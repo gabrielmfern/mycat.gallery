@@ -49,8 +49,10 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
             "      />",
             "   </form>",
             "</div>",
-            "<div class=\"w-full bg-gray-2 flex flex-wrap p-10\">",
+            "<div class=\"w-full bg-gray-2 p-10\">",
+            "   <div class=\"masonry-grid\">",
             picture_elements,
+            "   </div>",
             "</div>",
         }),
     }, allocator);
