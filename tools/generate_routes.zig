@@ -62,7 +62,7 @@ pub fn main() !void {
     const routes_file = try std.mem.concat(
         allocator,
         u8,
-        &.{ "const glue = @import(\"glue\");\npub const routes = &.{\n", paths, "\n};" },
+        &.{ "const glue = @import(\"glue\");\npub const routes: []const glue.Route = &.{\n", paths, "\n};" },
     );
     defer allocator.free(routes_file);
 
