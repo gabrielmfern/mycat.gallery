@@ -12,16 +12,17 @@ pub fn build(b: *std.Build) !void {
         }),
     });
     const generate_routes_step = b.addRunArtifact(generate_routes);
-    const routes_module = b.createModule(.{
-        .root_source_file = generate_routes_step.addOutputFileArg("routes.zig"),
-    });
+    var update_source_files = b.addUpdateSourceFiles();
+    update_source_files.addCopyFileToSource(
+        generate_routes_step.addOutputFileArg("routes.zig"),
+        "./src/routes.zig",
+    );
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
-    exe_mod.addImport("routes", routes_module);
     exe_mod.addImport(
         "glue",
         b.createModule(.{
@@ -46,6 +47,7 @@ pub fn build(b: *std.Build) !void {
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
+    run_cmd.step.dependOn(&update_source_files.step);
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
         run_cmd.addArgs(args);

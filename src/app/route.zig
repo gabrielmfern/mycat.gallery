@@ -7,11 +7,6 @@ const logo = @import("../components/logo.zig").logo;
 const use_allocator = @import("../main.zig").use_allocator;
 const use_database = @import("../main.zig").use_database;
 
-pub const predicate = glue.Predicates.exact(
-    "/",
-    http.Method.GET,
-);
-
 pub fn handler(request: *http.Server.Request) anyerror!void {
     const allocator = use_allocator();
     const database = use_database();

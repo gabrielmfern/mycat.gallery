@@ -2,38 +2,31 @@ const std = @import("std");
 const glue = @import("glue");
 
 fn read_paths_from(
-    directory_path: []const u8,
+    directory: std.fs.Dir,
+    base_path: []const u8,
     imports: *std.ArrayList([]const u8),
     allocator: std.mem.Allocator,
 ) !void {
-    const directory = try std.fs.cwd().openDir(
-        directory_path,
-        .{ .iterate = true },
-    );
     var iterator = directory.iterate();
     while (try iterator.next()) |entry| {
         const path = try std.fs.path.join(
             allocator,
-            &.{ directory_path, entry.name },
+            &.{ base_path, entry.name },
         );
+
         defer allocator.free(path);
         if (entry.kind == .directory) {
-            try read_paths_from(path, imports, allocator);
-        } else if (entry.kind == .file and std.mem.endsWith(
-            u8,
-            entry.name,
-            "route.zig",
-        )) {
+            try read_paths_from(
+                try directory.openDir(entry.name, .{ .iterate = true }),
+                path,
+                imports,
+                allocator,
+            );
+        } else if (entry.kind == .file and std.mem.endsWith(u8, entry.name, "route.zig")) {
             const import = try std.mem.concat(
                 allocator,
                 u8,
-                &.{
-                    "   glue.Route.from(@import(\"",
-                    path,
-                    "\"), \"",
-                    path,
-                    "\")",
-                },
+                &.{ "   glue.Route.from(@import(\"", path, "\"), \"", path, "\")" },
             );
             try imports.append(import);
         }
@@ -56,7 +49,12 @@ pub fn main() !void {
             allocator.free(path);
         }
     }
-    try read_paths_from("./src/app", &imports, allocator);
+    try read_paths_from(
+        try std.fs.cwd().openDir("./src/app", .{ .iterate = true }),
+        "./app",
+        &imports,
+        allocator,
+    );
 
     const paths = try std.mem.join(allocator, ",\n", imports.items);
     defer allocator.free(paths);

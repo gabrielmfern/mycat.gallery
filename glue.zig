@@ -9,11 +9,7 @@ pub fn predicate_from(
 ) Predicate {
     return (struct {
         fn predicate(request: *http.Server.Request) bool {
-            return std.mem.startsWith(
-                u8,
-                request.head.target,
-                path,
-            );
+            return std.mem.startsWith(u8, request.head.target, path["./app".len .. path.len - "route.zig".len]);
         }
     }).predicate;
 }

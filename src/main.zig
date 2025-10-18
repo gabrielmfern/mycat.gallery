@@ -3,7 +3,7 @@ const http = std.http;
 const glue = @import("glue");
 const Database = @import("database.zig");
 
-const routes = @import("routes").routes;
+const routes = @import("routes.zig").routes;
 
 var allocator: std.mem.Allocator = undefined;
 var database: Database = undefined;
@@ -55,6 +55,8 @@ pub fn main() !void {
     database = try Database.init(allocator);
     defer database.deinit();
     std.log.debug("Connection to database established", .{});
+
+    std.log.debug("Registeed {d} routes", .{routes.len});
 
     while (true) {
         const connection = try server.accept();
