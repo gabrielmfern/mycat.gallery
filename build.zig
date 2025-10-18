@@ -12,6 +12,7 @@ pub fn build(b: *std.Build) !void {
         }),
     });
     const generate_routes_step = b.addRunArtifact(generate_routes);
+    generate_routes_step.has_side_effects = true;
     var wf = b.addUpdateSourceFiles();
     wf.addCopyFileToSource(
         generate_routes_step.addOutputFileArg("routes.zig"),
