@@ -4,12 +4,68 @@ const http = std.http;
 
 pub const Predicate = fn (request: *http.Server.Request) bool;
 
+fn matchesPattern(target: []const u8, pattern: []const u8) bool {
+    var target_pos: usize = 0;
+    var pattern_pos: usize = 0;
+
+    while (pattern_pos < pattern.len) {
+        if (pattern_pos < pattern.len and pattern[pattern_pos] == '[') {
+            const bracket_end = std.mem.indexOfScalarPos(u8, pattern, pattern_pos, ']') orelse return false;
+            const param_name = pattern[pattern_pos + 1 .. bracket_end];
+
+            if (std.mem.startsWith(u8, param_name, "...")) {
+                return true;
+            }
+
+            const next_pattern_pos = bracket_end + 1;
+            if (next_pattern_pos >= pattern.len) {
+                return target_pos < target.len;
+            }
+
+            const next_char = pattern[next_pattern_pos];
+            const next_pos = std.mem.indexOfScalarPos(u8, target, target_pos, next_char) orelse target.len;
+
+            if (next_pos == target_pos) return false;
+
+            target_pos = next_pos;
+            pattern_pos = next_pattern_pos;
+        } else {
+            if (target_pos >= target.len or target[target_pos] != pattern[pattern_pos]) {
+                return false;
+            }
+            target_pos += 1;
+            pattern_pos += 1;
+        }
+    }
+
+    return target_pos == target.len;
+}
+
+test "matchesPattern" {
+    try std.testing.expect(matchesPattern("/pictures/123", "/pictures/[id]"));
+    try std.testing.expect(matchesPattern("/pictures/abc", "/pictures/[id]"));
+    try std.testing.expect(!matchesPattern("/pictures", "/pictures/[id]"));
+    try std.testing.expect(!matchesPattern("/pictures/", "/pictures/[id]"));
+
+    try std.testing.expect(matchesPattern("/assets/style.css", "/assets/[...name]"));
+    try std.testing.expect(matchesPattern("/assets/js/app.js", "/assets/[...name]"));
+    try std.testing.expect(matchesPattern("/assets/images/logo.png", "/assets/[...name]"));
+
+    try std.testing.expect(matchesPattern("/api/users/123/posts", "/api/users/[id]/posts"));
+    try std.testing.expect(!matchesPattern("/api/users/posts", "/api/users/[id]/posts"));
+}
+
+
 pub fn predicate_from(
     path: []const u8,
 ) Predicate {
+    const route_pattern = path["./app".len .. path.len - "route.zig".len];
+
     return (struct {
+        const pattern = route_pattern;
+
         fn predicate(request: *http.Server.Request) bool {
-            return std.mem.startsWith(u8, request.head.target, path["./app".len .. path.len - "route.zig".len]);
+            return matchesPattern(request.head.target, pattern);
         }
     }).predicate;
 }
