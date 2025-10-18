@@ -5,7 +5,6 @@ const glue = @import("glue");
 const use_allocator = @import("../../../main.zig").use_allocator;
 
 pub fn handler(request: *http.Server.Request) anyerror!void {
-    std.log.debug("picture handler has been called", .{});
     const allocator = use_allocator();
 
     var segments_iterator = std.mem.splitBackwardsSequence(

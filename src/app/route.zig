@@ -9,7 +9,7 @@ const use_database = @import("../main.zig").use_database;
 
 pub fn handler(request: *http.Server.Request) anyerror!void {
     const allocator = use_allocator();
-    const database = use_database();
+    var database = try use_database();
     const page = try database.get_page(1);
     std.log.debug(
         "Loaded page {d} with {d} pictures",
@@ -17,12 +17,6 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
     );
 
     var picture_elements = try allocator.alloc([]const u8, page.pictures.len);
-    defer {
-        for (picture_elements) |element| {
-            allocator.free(element);
-        }
-        allocator.free(picture_elements);
-    }
     for (page.pictures, 0..) |picture, i| {
         picture_elements[i] = try glue.html(.{
             "<div class=\"picture-card\">",
@@ -60,7 +54,6 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
             "</div>",
         }),
     }, allocator);
-    defer allocator.free(html);
     try request.respond(
         html,
         .{

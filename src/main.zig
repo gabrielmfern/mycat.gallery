@@ -12,18 +12,16 @@ pub fn use_allocator() std.mem.Allocator {
     return thread_allocator;
 }
 
-pub fn use_database() *Database {
-    return &thread_database;
+pub fn use_database() !Database {
+    thread_database = try Database.init(use_allocator());
+    std.log.debug("Connection to database established", .{});
+    return thread_database;
 }
 
 fn handle_connection(connection: std.net.Server.Connection) anyerror!void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     thread_allocator = arena.allocator();
     defer arena.deinit();
-
-    thread_database = try Database.init(thread_allocator);
-    defer thread_database.deinit();
-    std.log.debug("Connection to database established", .{});
 
     defer connection.stream.close();
     var head_buffer: [1024]u8 = undefined;
