@@ -2,3 +2,4 @@
 zig-out
 database.db
 pictures
+.DS_Store
