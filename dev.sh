@@ -1,1 +1,1 @@
-watchexec --restart --clear --watch src/ -- zig build run
+watchexec --restart --watch ./src/app --watch ./src/components --watch ./src/main.zig --watch ./src/database.zig -- zig build run
