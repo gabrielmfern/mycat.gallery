@@ -28,15 +28,5 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
                 },
             },
         );
-    } else {
-        try request.respond(
-            "Not Found",
-            .{
-                .status = .not_found,
-                .extra_headers = &.{
-                    .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
-                },
-            },
-        );
     }
 }

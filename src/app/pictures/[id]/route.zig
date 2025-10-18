@@ -32,20 +32,14 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
         path,
         .{},
     ) catch {
-        try request.respond(
-            "Not Found",
-            .{
-                .status = .not_found,
-                .extra_headers = &.{
-                    .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
-                },
-            },
-        );
         return;
     };
     const metadata = try picture.metadata();
     var reader = picture.reader();
-    const contents = try reader.readAllAlloc(allocator, @intCast(metadata.size()));
+    const contents = try reader.readAllAlloc(
+        allocator,
+        @intCast(metadata.size()),
+    );
 
     try request.respond(
         contents,

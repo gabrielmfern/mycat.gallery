@@ -30,11 +30,24 @@ fn handle_connection(connection: std.net.Server.Connection) anyerror!void {
     var http_request = try http_server.receiveHead();
     std.log.debug("{s} {s}", .{ @tagName(http_request.head.method), http_request.head.target });
 
+    var handled = false;
     inline for (routes) |route| {
         if (route.predicate(&http_request)) {
             try route.handler(&http_request);
+            handled = true;
             break;
         }
+    }
+    if (!handled) {
+        try http_request.respond(
+            "Not Found",
+            .{
+                .status = .not_found,
+                .extra_headers = &.{
+                    .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
+                },
+            },
+        );
     }
 }
 
