@@ -48,6 +48,7 @@ test "matchesPattern" {
     try std.testing.expect(!matchesPattern("/some-route", "/my-route"));
     try std.testing.expect(!matchesPattern("/my-route/something-else", "/my-route"));
 
+    try std.testing.expect(matchesPattern("/pictures/262565206935809491843893546137080338689.png", "/pictures/[id]"));
     try std.testing.expect(matchesPattern("/pictures/123", "/pictures/[id]"));
     try std.testing.expect(matchesPattern("/pictures/abc", "/pictures/[id]"));
     try std.testing.expect(!matchesPattern("/pictures", "/pictures/[id]"));
@@ -62,17 +63,16 @@ test "matchesPattern" {
     try std.testing.expect(!matchesPattern("/api/users/posts", "/api/users/[id]/posts"));
 }
 
-
 pub fn predicate_from(
-    path: []const u8,
+    comptime path: []const u8,
 ) Predicate {
-    const route_pattern = path["./app".len .. path.len - "route.zig".len];
-
     return (struct {
-        const pattern = route_pattern;
-
         fn predicate(request: *http.Server.Request) bool {
-            return matchesPattern(request.head.target, pattern);
+            var route_pattern: []const u8 = path["./app".len .. path.len - "route.zig".len][0..];
+            if (!std.mem.eql(u8, route_pattern, "/")) {
+                route_pattern = std.mem.trimRight(u8, route_pattern, "/");
+            }
+            return matchesPattern(request.head.target, route_pattern);
         }
     }).predicate;
 }
