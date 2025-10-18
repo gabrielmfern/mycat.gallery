@@ -5,11 +5,32 @@ const glue = @import("glue");
 const use_allocator = @import("../../../main.zig").use_allocator;
 
 pub fn handler(request: *http.Server.Request) anyerror!void {
+    std.log.debug("picture handler has been called", .{});
     const allocator = use_allocator();
 
-    const path = request.head.target;
+    var segments_iterator = std.mem.splitBackwardsSequence(
+        u8,
+        request.head.target,
+        "/",
+    );
+    const filename = segments_iterator.next();
+    if (filename == null) {
+        try request.respond(
+            "An unexpected error happened",
+            .{
+                .status = .internal_server_error,
+                .extra_headers = &.{
+                    .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
+                },
+            },
+        );
+        return;
+    }
+
+    const path = try std.mem.concat(allocator, u8, &.{ "./pictures/", filename.? });
+
     const picture = std.fs.cwd().openFile(
-        std.mem.trim(u8, path, "/"),
+        path,
         .{},
     ) catch {
         try request.respond(
@@ -26,7 +47,7 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
     const metadata = try picture.metadata();
     var reader = picture.reader();
     const contents = try reader.readAllAlloc(allocator, @intCast(metadata.size()));
-    defer allocator.free(contents);
+
     try request.respond(
         contents,
         .{
