@@ -5,6 +5,67 @@
   --color-gray-2: #222222;
   --color-gray-3: #676767;
   --color-green-1: #ACC8B4;
+  --color-brown-1: #946D54;
+}
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.right-1 {
+  right: 0.25rem;
+}
+
+.right-2 {
+  right: 0.5rem;
+}
+
+.top-1 {
+  top: 0.25rem;
+}
+
+.top-2 {
+  top: 0.5rem;
+}
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.transition-opacity {
+  transition-property: opacity;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.appeareance-none {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+}
+
+.border-none {
+  border: none;
+}
+
+.text-brown-1 {
+  color: var(--color-brown-1);
+}
+
+.p-2 {
+  padding: 0.5rem;
+}
+
+.bg-transparent {
+  background: transparent;
+}
+
+.group:hover .group-hover\:opacity-100 {
+  opacity: 100;
 }
 
 *, html, body {
