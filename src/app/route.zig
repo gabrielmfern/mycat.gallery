@@ -27,7 +27,9 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
         picture_elements[i] = try glue.html(.{
             "<div class=\"picture-card\">",
             "   <img",
-            "       src=\"", picture.uri, "\"",
+            "       src=\"",
+            picture.uri,
+            "\"",
             "   />",
             "</div>",
         }, allocator);
