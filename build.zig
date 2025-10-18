@@ -62,12 +62,20 @@ pub fn build(b: *std.Build) !void {
 
     const webserver_tests = b.addTest(.{
         .root_module = exe_mod,
+        .test_runner = .{
+            .path = b.path("test_runner.zig"),
+            .mode = .simple,
+        },
     });
     webserver_tests.step.dependOn(&wf.step);
     const run_webserver_tests = b.addRunArtifact(webserver_tests);
 
     const glue_tests = b.addTest(.{
         .root_module = glue,
+        .test_runner = .{
+            .path = b.path("test_runner.zig"),
+            .mode = .simple,
+        },
     });
     const run_glue_tests = b.addRunArtifact(glue_tests);
 
