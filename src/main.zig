@@ -18,6 +18,18 @@ pub fn use_database() !Database {
     return thread_database;
 }
 
+pub fn not_found(request: *http.Server.Request) !void {
+    try request.respond(
+        "Not Found",
+        .{
+            .status = .not_found,
+            .extra_headers = &.{
+                .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
+            },
+        },
+    );
+}
+
 fn handle_connection(connection: std.net.Server.Connection) anyerror!void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     thread_allocator = arena.allocator();
@@ -39,15 +51,7 @@ fn handle_connection(connection: std.net.Server.Connection) anyerror!void {
         }
     }
     if (!handled) {
-        try http_request.respond(
-            "Not Found",
-            .{
-                .status = .not_found,
-                .extra_headers = &.{
-                    .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
-                },
-            },
-        );
+        try not_found(&http_request);
     }
 }
 

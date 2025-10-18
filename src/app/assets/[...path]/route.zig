@@ -3,6 +3,7 @@ const http = std.http;
 const glue = @import("glue");
 
 const use_allocator = @import("../../../main.zig").use_allocator;
+const not_found = @import("../../../main.zig").not_found;
 
 const globals_css = @embedFile("./globals.css");
 const logo = @embedFile("./logo.svg");
@@ -28,5 +29,7 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
                 },
             },
         );
+    } else {
+        try not_found(request);
     }
 }

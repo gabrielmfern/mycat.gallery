@@ -3,6 +3,7 @@ const http = std.http;
 const glue = @import("glue");
 
 const use_allocator = @import("../../../main.zig").use_allocator;
+const not_found = @import("../../../main.zig").not_found;
 
 pub fn handler(request: *http.Server.Request) anyerror!void {
     const allocator = use_allocator();
@@ -32,6 +33,7 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
         path,
         .{},
     ) catch {
+        try not_found(request);
         return;
     };
     const metadata = try picture.metadata();
