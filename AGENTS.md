@@ -13,6 +13,7 @@
 - Routes auto-generated from `src/app/` directory structure to `src/routes.zig`
 - Components in `src/components/` (layout.zig, logo.zig)
 - Database layer in `src/database.zig`
+- Global styles in `src/app/assets/[...path]/globals.css`
 - Dependencies: sqlite, uuid via build.zig.zon
 
 ## Code Style Guidelines
