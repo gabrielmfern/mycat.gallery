@@ -4,6 +4,8 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    var wf = b.addUpdateSourceFiles();
+
     {
         // File-routing strategy
         const generate_routes = b.addExecutable(.{
@@ -16,7 +18,6 @@ pub fn build(b: *std.Build) !void {
         });
         const generate_routes_step = b.addRunArtifact(generate_routes);
         generate_routes_step.has_side_effects = true;
-        var wf = b.addUpdateSourceFiles();
         wf.addCopyFileToSource(
             generate_routes_step.addOutputFileArg("routes.zig"),
             "./src/routes.zig",
@@ -29,10 +30,14 @@ pub fn build(b: *std.Build) !void {
             "npx",
             "tailwindcss",
             "-i",
-            "src/assets/styles/globals.css",
+            "src/index.css",
             "-o",
         });
-        tailwindcss_command.addOutputFileArg("output.css");
+        tailwindcss_command.has_side_effects = true;
+        wf.addCopyFileToSource(
+            tailwindcss_command.addOutputFileArg("generated.css"),
+            "./public/generated.css",
+        );
     }
 
     const glue = b.createModule(.{

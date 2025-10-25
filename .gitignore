@@ -1,4 +1,5 @@
 .zig-cache
+node_modules
 zig-out
 database.db
 .DS_Store
