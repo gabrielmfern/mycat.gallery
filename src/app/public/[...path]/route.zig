@@ -10,7 +10,14 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
 
     // We probably need some sanitization here since this might
     // be used to access arbitrary files on the filesystem.
-    const path = request.head.target;
+    const path = try std.mem.concat(
+        allocator,
+        u8,
+        &.{
+            ".",
+            request.head.target,
+        },
+    );
     std.log.debug("Opening file: {s}", .{path});
     const file = std.fs.cwd().openFile(path, .{}) catch {
         try not_found(request);

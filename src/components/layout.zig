@@ -27,7 +27,7 @@ pub fn layout(
         "  <meta charset=\"UTF-8\">",
         "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">",
         "  <title>" ++ title ++ "</title>",
-        "  <link rel=\"stylesheet\" href=\"/assets/globals.css\">",
+        "  <link rel=\"stylesheet\" href=\"/public/generated.css\">",
         "</head>",
         "<body class=\"m-0 text-base bg-gray-1 text-green-1 font-sans\">",
         "  <div class=\"container mx-auto\">",
