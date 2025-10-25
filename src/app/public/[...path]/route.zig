@@ -18,7 +18,6 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
             request.head.target,
         },
     );
-    std.log.debug("Opening file: {s}", .{path});
     const file = std.fs.cwd().openFile(path, .{}) catch {
         try not_found(request);
         return;
@@ -35,7 +34,7 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
         if (std.mem.eql(u8, extension, ".jpg")) break :content_type "image/jpeg";
         if (std.mem.eql(u8, extension, ".jpeg")) break :content_type "image/jpeg";
         if (std.mem.eql(u8, extension, ".gif")) break :content_type "image/gif";
-        std.log.err("Unknown file extension: {s}", .{extension});
+        std.log.warn("Unknown file extension: {s}", .{extension});
         break :content_type "text/plain; charset=UTF-8";
     };
 
