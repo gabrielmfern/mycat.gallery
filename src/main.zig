@@ -68,19 +68,18 @@ fn handle_connection(connection: std.net.Server.Connection) anyerror!void {
                     WriteError.ConnectionResetByPeer => {
                         std.log.debug("Connection reset during response: {}", .{err});
                         connection_alive = false;
-                        // Don't return early - let cleanup happen naturally
+                    },
+                    WriteError.BrokenPipe => {
+                        std.log.debug("Broken pipe during response: {}", .{err});
+                        connection_alive = false;
                     },
                     else => {
-                        std.log.err("Handler error: {}", .{err});
-                        // Try to send error response if connection is still alive
-                        if (connection_alive) {
-                            try http_request.respond("Internal Server Error", .{
-                                .status = .internal_server_error,
-                                .extra_headers = &.{
-                                    .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
-                                },
-                            });
-                        }
+                        try http_request.respond("Internal Server Error", .{
+                            .status = .internal_server_error,
+                            .extra_headers = &.{
+                                .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
+                            },
+                        });
                         return err;
                     },
                 }
