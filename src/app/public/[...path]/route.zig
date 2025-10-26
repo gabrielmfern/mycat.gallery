@@ -8,8 +8,6 @@ const not_found = @import("../../../main.zig").not_found;
 pub fn handler(request: *http.Server.Request) anyerror!void {
     const allocator = use_allocator();
 
-    // We probably need some sanitization here since this might
-    // be used to access arbitrary files on the filesystem.
     const path = try std.mem.concat(
         allocator,
         u8,
@@ -18,6 +16,22 @@ pub fn handler(request: *http.Server.Request) anyerror!void {
             request.head.target,
         },
     );
+    var iterator = std.mem.splitScalar(u8, path, '/');
+    while (iterator.next()) |segment| {
+        if (std.mem.containsAtLeast(u8, segment, 1, "..")) {
+            std.log.warn("Directory traversal attempt blocked: {s}", .{path});
+            try request.respond(
+                "Access denied",
+                .{
+                    .status = .forbidden,
+                    .extra_headers = &.{
+                        .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
+                    },
+                },
+            );
+            return;
+        }
+    }
     const file = std.fs.cwd().openFile(path, .{}) catch {
         try not_found(request);
         return;
