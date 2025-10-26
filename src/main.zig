@@ -39,19 +39,67 @@ fn handle_connection(connection: std.net.Server.Connection) anyerror!void {
     var head_buffer: [1024]u8 = undefined;
     var http_server = std.http.Server.init(connection, &head_buffer);
 
-    var http_request = try http_server.receiveHead();
-    std.log.debug("{s} {s}", .{ @tagName(http_request.head.method), http_request.head.target });
+    const ReceivedHeadError = std.http.Server.ReceiveHeadError;
+    // Catch connection errors early during header parsing
+    var http_request = http_server.receiveHead() catch |err| {
+        switch (err) {
+            ReceivedHeadError.HttpConnectionClosing => {
+                std.log.debug("HTTP connection closing during header parsing", .{});
+                return;
+            },
+            else => return err,
+        }
+    };
+
+    std.log.debug("{s} {s}", .{
+        @tagName(http_request.head.method),
+        http_request.head.target,
+    });
 
     var handled = false;
+    var connection_alive = true;
+
     inline for (routes) |route| {
         if (route.predicate(&http_request)) {
-            try route.handler(&http_request);
+            route.handler(&http_request) catch |err| {
+                // Check if it's a connection-related error
+                const WriteError = std.http.Server.Response.WriteError;
+                switch (err) {
+                    WriteError.ConnectionResetByPeer => {
+                        std.log.debug("Connection reset during response: {}", .{err});
+                        connection_alive = false;
+                        // Don't return early - let cleanup happen naturally
+                    },
+                    else => {
+                        std.log.err("Handler error: {}", .{err});
+                        // Try to send error response if connection is still alive
+                        if (connection_alive) {
+                            try http_request.respond("Internal Server Error", .{
+                                .status = .internal_server_error,
+                                .extra_headers = &.{
+                                    .{ .name = "Content-Type", .value = "text/plain; charset=UTF-8" },
+                                },
+                            });
+                        }
+                        return err;
+                    },
+                }
+            };
             handled = true;
             break;
         }
     }
-    if (!handled) {
-        try not_found(&http_request);
+
+    if (!handled and connection_alive) {
+        not_found(&http_request) catch |err| {
+            const WriteError = std.http.Server.Response.WriteError;
+            switch (err) {
+                WriteError.ConnectionResetByPeer, WriteError.BrokenPipe => {
+                    std.log.debug("Connection reset during 404 response: {}", .{err});
+                },
+                else => std.log.err("Error sending 404 response: {}", .{err}),
+            }
+        };
     }
 }
 

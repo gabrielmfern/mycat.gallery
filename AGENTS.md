@@ -1,8 +1,8 @@
 # AGENTS.md - Development Guidelines
 
 ## Build/Test Commands
-- `zig build` - Build the project
-- `zig build run` - Build and run the application (includes route generation)
+- `zig build` - Build the project (includes route generation + TailwindCSS compilation)
+- `zig build run` - Build and run the application 
 - `zig build test` - Run all unit tests (webserver + glue tests)
 - `./dev.sh` - Development mode with file watching (uses watchexec)
 - No specific single test command available (use `zig build test` for all tests)
@@ -13,8 +13,8 @@
 - Routes auto-generated from `src/app/` directory structure to `src/routes.zig`
 - Components in `src/components/` (layout.zig, logo.zig)
 - Database layer in `src/database.zig`
-- Global styles in `src/app/assets/[...path]/globals.css`
-- Dependencies: sqlite, uuid via build.zig.zon
+- Styles: `src/index.css` (input) → `public/generated.css` (TailwindCSS output)
+- Dependencies: sqlite, uuid (Zig), tailwindcss (Node.js via package.json)
 
 ## Code Style Guidelines
 - Use snake_case for variables and functions
